@@ -6,9 +6,12 @@ import DashboardPage from './pages/DashboardPage';
 import PasswordChangePage from './pages/PasswordChangePage';
 import PasswordResetPage from './pages/PasswordResetPage';
 import ClientDownloadPage from './pages/ClientDownloadPage';
+import EmailVerificationConfirmPage from './pages/EmailVerificationConfirmPage';
 import NotFoundPage from './pages/NotFoundPage';
-import ProtectedRoute from './components/auth/ProtectedRoute'; // Import ProtectedRoute
-import { useAuth } from './context/AuthContext'; // Import useAuth
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminRoute from './components/auth/AdminRoute'; // Import AdminRoute
+import UserListPage from './pages/admin/UserListPage'; // Import Admin User List Page
+import { useAuth } from './context/AuthContext';
 
 const Navbar = () => {
   const { isAuthenticated, logout, user } = useAuth();
@@ -30,6 +33,9 @@ const Navbar = () => {
             <>
               <span className="text-wotlk-ice">Welcome, {user ? user.username : 'User'}!</span>
               <Link to="/dashboard" className="text-wotlk-text-light hover:text-wotlk-light-blue">Dashboard</Link>
+              {user && user.gmlevel >= 3 && ( // Updated to check gmlevel
+                <Link to="/admin/users" className="text-yellow-400 hover:text-yellow-300">Admin Panel</Link>
+              )}
               <Link to="/change-password" className="text-wotlk-text-light hover:text-wotlk-light-blue">Change Password</Link>
               <button onClick={handleLogout} className="text-wotlk-text-light hover:text-wotlk-light-blue">Logout</button>
             </>
@@ -39,7 +45,7 @@ const Navbar = () => {
               <Link to="/register" className="text-wotlk-text-light hover:text-wotlk-light-blue">Register</Link>
             </>
           )}
-          <Link to="/download" className="text-wotlk-text-light hover:text-wotlk-light-blue">Download Client</Link>
+          <Link to="/downloads" className="text-wotlk-text-light hover:text-wotlk-light-blue">Client Downloads</Link>
         </div>
       </div>
     </nav>
@@ -80,11 +86,24 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/change-password" element={<PasswordChangePage />} />
-            {/* Add other routes that need protection here */}
           </Route>
 
+          {/* Admin Routes */}
+          <Route element={<AdminRoute />}>
+            <Route path="/admin/users" element={<UserListPage />} />
+            {/* Add other admin routes here */}
+          </Route>
+
+          {/* Protected Download Page */}
+          <Route path="/downloads" element={
+            <ProtectedRoute>
+              <ClientDownloadPage />
+            </ProtectedRoute>
+          } />
+
           <Route path="/reset-password" element={<PasswordResetPage />} /> {/* Assuming public for now */}
-          <Route path="/download" element={<ClientDownloadPage />} /> {/* Assuming public */}
+          {/* <Route path="/download" element={<ClientDownloadPage />} /> REMOVED OLD PUBLIC ROUTE */}
+          <Route path="/verify-email" element={<EmailVerificationConfirmPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </MainLayout>
