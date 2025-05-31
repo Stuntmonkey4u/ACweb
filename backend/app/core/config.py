@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     RATE_LIMIT_2FA_ENABLE_DISABLE: str = "10/minute" # For enable/disable 2FA attempts
     RATE_LIMIT_CAPTCHA_GENERATE: str = "60/minute"
 
+    # Client Download URLs
+    LAN_DOWNLOAD_URL: str | None = "http://192.168.1.100/downloads/wow_client.zip" # Example LAN URL
+    PUBLIC_DOWNLOAD_URL: str | None = "https://download.example.com/wow_client.zip" # Example Public URL
+
 
     class Config:
         env_file = ".env"

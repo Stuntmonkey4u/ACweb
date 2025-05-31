@@ -114,5 +114,27 @@ export const apiClient = {
   // Example: Fetch current user (get method needs to handle token)
   getCurrentUser: async (authToken) => {
     return apiClient.get('/auth/users/me', authToken);
+  },
+
+  // --- Admin ---
+  adminListUsers: async (authToken) => {
+    return apiClient.get('/admin/users', authToken);
+  },
+  adminBanUser: async (userId, authToken) => {
+    return apiClient.post(`/admin/users/${userId}/ban`, {}, authToken);
+  },
+  adminUnbanUser: async (userId, authToken) => {
+    return apiClient.post(`/admin/users/${userId}/unban`, {}, authToken);
+  },
+  adminPromoteUser: async (userId, authToken) => {
+    return apiClient.post(`/admin/users/${userId}/promote`, {}, authToken);
+  },
+  adminDemoteUser: async (userId, authToken) => {
+    return apiClient.post(`/admin/users/${userId}/demote`, {}, authToken);
+  },
+
+  // --- Downloads ---
+  getClientDownloadInfo: async (authToken) => {
+    return apiClient.get('/downloads/client-info', authToken);
   }
 };

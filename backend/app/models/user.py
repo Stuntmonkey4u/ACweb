@@ -5,6 +5,8 @@ class UserBase(BaseModel):
     username: constr(min_length=3, max_length=16, regex="^[a-zA-Z0-9_]+$")
     email: EmailStr
     email_verified: bool = False
+    is_admin: bool = False # Default to False, not settable at creation by normal users
+    locked: bool = False # Default to False
 
 class UserCreate(UserBase):
     password: constr(min_length=6, max_length=100)
@@ -18,6 +20,8 @@ class UserUpdate(UserBase): # For updating user info
 class UserInDBBase(UserBase):
     id: int
     email_verified: bool # Ensure this is present, will get value from DB
+    is_admin: bool # Will get value from ORM model
+    locked: bool # Will get value from ORM model
     # expansion: int # Example, if you want to return it
     # Add other fields from 'account' table you want to expose
 
