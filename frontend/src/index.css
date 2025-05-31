@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-wotlk-dark-stone text-wotlk-text-light font-sans;
+  margin: 0; /* Ensure no default margin */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-cinzel text-wotlk-gold;
+}
+
+/* Custom component examples (can be expanded) */
+.btn-primary {
+  @apply bg-wotlk-blue hover:bg-blue-700 text-white font-bold py-2 px-4 rounded border-2 border-wotlk-gold hover:border-yellow-300 shadow-md;
+  /* A more WotLK feel might involve custom borders/shapes not easily done with pure Tailwind */
+}
+
+.panel-parchment {
+  @apply bg-wotlk-parchment text-wotlk-text-dark p-6 rounded-lg shadow-lg border-2 border-wotlk-parchment-dark;
+  /* box-shadow: 0 0 15px rgba(0,0,0,0.5); */
+}
+
+.input-themed {
+  @apply bg-wotlk-parchment-dark border border-wotlk-stone text-wotlk-text-dark placeholder-gray-500 text-sm rounded-sm focus:ring-wotlk-gold focus:border-wotlk-gold block w-full p-2.5 shadow-input-inset;
+}
