@@ -41,7 +41,11 @@ async def startup_event():
 
 logger.info(f"API Settings Loaded. DB Host: {settings.DB_HOST}, DB Name: {settings.DB_NAME}")
 
+from backend.app.api.endpoints import admin as admin_router
+from backend.app.api.endpoints import downloads as downloads_router # Import downloads router
 app.include_router(auth_router.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(admin_router.router) # Prefix and tags are defined in admin.py
+app.include_router(downloads_router.router) # Prefix and tags are defined in downloads.py
 
 @app.get("/api/health")
 async def health_check():

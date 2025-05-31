@@ -76,3 +76,36 @@ def mark_user_email_as_verified(db: Session, user_id: int) -> account_model.Acco
         return db_user
     logger.warning(f"Attempted to mark email as verified for non-existent user ID {user_id}")
     return None
+
+# --- Admin CRUD Functions ---
+
+def get_all_users(db: Session) -> list[account_model.Account]:
+    return db.query(account_model.Account).all()
+
+def ban_account(db: Session, user: account_model.Account) -> account_model.Account:
+    user.locked = True # In AC, 1 typically means locked/banned
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Account {user.username} (ID: {user.id}) has been banned.")
+    return user
+
+def unban_account(db: Session, user: account_model.Account) -> account_model.Account:
+    user.locked = False # In AC, 0 typically means not locked/banned
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Account {user.username} (ID: {user.id}) has been unbanned.")
+    return user
+
+def promote_to_admin(db: Session, user: account_model.Account) -> account_model.Account:
+    user.is_admin = True
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Account {user.username} (ID: {user.id}) has been promoted to admin.")
+    return user
+
+def demote_from_admin(db: Session, user: account_model.Account) -> account_model.Account:
+    user.is_admin = False
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Account {user.username} (ID: {user.id}) has been demoted from admin.")
+    return user

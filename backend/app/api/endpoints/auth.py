@@ -173,39 +173,16 @@ class TOTPDisableRequest(user_schema.BaseModel):
     totp_code: str
 
 
+from backend.app.api.dependencies import get_current_active_user # Import the dependency
+
 # Dependency to get current user from token (no rate limit here, applied on endpoints using it)
-async def get_current_active_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> account_model.Account : # Changed to async
-    # This function itself doesn't need `request: Request` unless it's directly limited,
-    # which is not common for a dependency like this.
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        token_data = auth_service.verify_token(token, credentials_exception)
-        if token_data.username is None:
-             raise credentials_exception
-    except Exception:
-        raise credentials_exception
-
-    # Username from token (subject) should be uppercase as it's stored
-    user = user_crud.get_user_by_username(db, username=token_data.username)
-    if user is None:
-        logger.warning(f"Token validation failed: User {token_data.username} not found.")
-        raise credentials_exception
-
-    if user.locked:
-        logger.warning(f"Authentication failed for {user.username}: Account is locked.")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Account locked.")
-
-    return user
+# MOVED to dependencies.py: async def get_current_active_user(...)
 
 @router.get("/users/me", response_model=user_schema.User)
 @limiter.limit(settings.RATE_LIMIT_DEFAULT) # Example: Apply default limit
 async def read_users_me(
     request: Request, # Added
-    current_user: account_model.Account = Depends(get_current_active_user)
+    current_user: account_model.Account = Depends(get_current_active_user) # Now uses imported version
 ): # Changed to async
     logger.info(f"User {current_user.username} accessed /users/me endpoint.")
     return current_user
@@ -215,7 +192,7 @@ async def read_users_me(
 async def change_current_user_password( # Changed to async
     request: Request, # Added
     password_data: user_schema.PasswordChange,
-    current_user: account_model.Account = Depends(get_current_active_user),
+    current_user: account_model.Account = Depends(get_current_active_user), # Now uses imported version
     db: Session = Depends(get_db)
 ):
     logger.info(f"Password change attempt for user: {current_user.username}")
@@ -347,7 +324,7 @@ async def confirm_password_reset( # Already async
 @limiter.limit(settings.RATE_LIMIT_2FA_SETUP)
 async def setup_2fa( # Changed to async
     request: Request, # Added
-    current_user: account_model.Account = Depends(get_current_active_user),
+    current_user: account_model.Account = Depends(get_current_active_user), # Now uses imported version
     aux_db: Session = Depends(get_aux_db)
 ):
     logger.info(f"2FA setup initiated for user {current_user.username}")
@@ -380,7 +357,7 @@ async def setup_2fa( # Changed to async
 async def enable_2fa( # Changed to async
     request: Request, # Added
     totp_data: TOTPEnableRequest,
-    current_user: account_model.Account = Depends(get_current_active_user),
+    current_user: account_model.Account = Depends(get_current_active_user), # Now uses imported version
     aux_db: Session = Depends(get_aux_db)
 ):
     logger.info(f"2FA enable attempt for user {current_user.username}")
@@ -436,7 +413,7 @@ async def generate_captcha_challenge( # Changed to async
 async def disable_2fa( # Changed to async
     request: Request, # Added
     totp_data: TOTPDisableRequest,
-    current_user: account_model.Account = Depends(get_current_active_user),
+    current_user: account_model.Account = Depends(get_current_active_user), # Now uses imported version
     aux_db: Session = Depends(get_aux_db)
 ):
     logger.info(f"2FA disable attempt for user {current_user.username}")

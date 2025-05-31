@@ -29,8 +29,9 @@ class Account(Base):
     joindate = Column(TIMESTAMP, nullable=False, server_default=func.now())
     last_login = Column(TIMESTAMP, nullable=True)
 
-    locked = Column(Boolean, nullable=False, default=False)
+    locked = Column(Boolean, nullable=False, default=False, server_default=expression.false()) # Added server_default for consistency
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default=expression.false())
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default=expression.false(), nullable=False)
 
     # Other common fields from AzerothCore 'account' table (optional, for reference or future use):
     # v = Column(String(255), nullable=False, default='')
@@ -44,5 +45,10 @@ class Account(Base):
     #active_realm_id = Column(Integer, nullable=False, default=0)
     #token_auth = Column(String(100), nullable=True) # Used for remember me token
 
+    # Manual Admin Promotion SQL (MySQL example):
+    # To manually set a user as admin (e.g., user with ID 1):
+    # UPDATE account SET is_admin = TRUE WHERE id = 1;
+    # Or, if using a DB management tool, edit the 'is_admin' field for the desired user.
+
     def __repr__(self):
-        return f"<Account(id={self.id}, username='{self.username}', email='{self.email}')>"
+        return f"<Account(id={self.id}, username='{self.username}', email='{self.email}', is_admin={self.is_admin})>"
