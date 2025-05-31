@@ -1,0 +1,24 @@
+# Basic Docker Compose
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+  #   environment:
+  #     - DB_HOST=your_db_host
+  #     - DB_USER=your_db_user
+  #     - DB_PASSWORD=your_db_password
+  #     - DB_NAME=auth
+  # frontend_nginx: # This service will serve the React app and proxy to backend
+  #   build: ./frontend
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - backend
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
