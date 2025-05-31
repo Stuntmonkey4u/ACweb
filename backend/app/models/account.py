@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, SmallInteger, Boolean, TIMESTAMP, text
-from sqlalchemy.sql import func # For server_default func.now()
+from sqlalchemy import Column, Integer, String, SmallInteger, Boolean, TIMESTAMP
+from sqlalchemy.sql import func, expression # For server_default func.now() and expression.false()
+from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.core.database import Base
 
@@ -29,6 +30,7 @@ class Account(Base):
     last_login = Column(TIMESTAMP, nullable=True)
 
     locked = Column(Boolean, nullable=False, default=False)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default=expression.false())
 
     # Other common fields from AzerothCore 'account' table (optional, for reference or future use):
     # v = Column(String(255), nullable=False, default='')
