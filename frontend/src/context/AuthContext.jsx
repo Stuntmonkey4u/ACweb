@@ -13,11 +13,10 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
       setToken(storedToken);
-      // Optional: Validate token with backend or decode to get user info quickly
-      // For now, we'll fetch user details if token exists
-      apiClient.get('/auth/users/me', storedToken)
-        .then(userData => {
-          setUser(userData);
+      // apiClient should automatically use the token from localStorage or its interceptors
+      apiClient.get('/auth/users/me')
+        .then(response => { // Assuming response.data contains the user object
+          setUser(response.data);
         })
         .catch(error => {
           console.error("Failed to fetch user with stored token", error);
@@ -31,21 +30,32 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (newToken) => {
-    localStorage.setItem('authToken', newToken);
-    setToken(newToken);
-    // Fetch user details upon login
+  // Login function updated to take credentials and totpCode
+  const login = async (username, password, totpCode = null) => {
     setIsLoading(true);
-    apiClient.get('/auth/users/me', newToken)
-      .then(userData => {
-        setUser(userData);
-      })
-      .catch(error => {
-        console.error("Failed to fetch user after login", error);
-        // Handle this case, maybe logout?
-        logout();
-      })
-      .finally(() => setIsLoading(false));
+    try {
+      // apiClient.login now makes the actual API call
+      const loginResponse = await apiClient.login(username, password, totpCode);
+      const newToken = loginResponse.access_token;
+
+      localStorage.setItem('authToken', newToken);
+      setToken(newToken);
+
+      // Fetch user details using the new token
+      // apiClient.getCurrentUser now takes the token explicitly as per api.js design
+      const userDataResponse = await apiClient.getCurrentUser(newToken);
+      setUser(userDataResponse);
+      setIsLoading(false);
+      return userDataResponse; // Return user data on successful login
+    } catch (error) {
+      // Log out or clear token if any step fails to prevent inconsistent state
+      localStorage.removeItem('authToken');
+      setToken(null);
+      setUser(null);
+      setIsLoading(false);
+      console.error("Login process failed", error);
+      throw error; // Rethrow error to be caught by LoginPage
+    }
   };
 
   const logout = () => {

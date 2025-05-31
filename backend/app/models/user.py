@@ -4,9 +4,12 @@ from typing import Optional
 class UserBase(BaseModel):
     username: constr(min_length=3, max_length=16, regex="^[a-zA-Z0-9_]+$")
     email: EmailStr
+    email_verified: bool = False
 
 class UserCreate(UserBase):
     password: constr(min_length=6, max_length=100)
+    captcha_id: str
+    captcha_solution: str
 
 class UserUpdate(UserBase): # For updating user info
     email: Optional[EmailStr] = None
@@ -14,6 +17,7 @@ class UserUpdate(UserBase): # For updating user info
 
 class UserInDBBase(UserBase):
     id: int
+    email_verified: bool # Ensure this is present, will get value from DB
     # expansion: int # Example, if you want to return it
     # Add other fields from 'account' table you want to expose
 

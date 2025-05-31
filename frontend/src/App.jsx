@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import PasswordChangePage from './pages/PasswordChangePage';
 import PasswordResetPage from './pages/PasswordResetPage';
 import ClientDownloadPage from './pages/ClientDownloadPage';
+import EmailVerificationConfirmPage from './pages/EmailVerificationConfirmPage'; // Added
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/auth/ProtectedRoute'; // Import ProtectedRoute
 import { useAuth } from './context/AuthContext'; // Import useAuth
@@ -85,6 +86,7 @@ function App() {
 
           <Route path="/reset-password" element={<PasswordResetPage />} /> {/* Assuming public for now */}
           <Route path="/download" element={<ClientDownloadPage />} /> {/* Assuming public */}
+          <Route path="/verify-email" element={<EmailVerificationConfirmPage />} /> {/* Added */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </MainLayout>

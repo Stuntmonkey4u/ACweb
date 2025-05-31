@@ -65,3 +65,14 @@ def authenticate_user(db: Session, username: str, password_plain: str) -> accoun
         return None
     logger.info(f"User {db_user.username} authenticated successfully.")
     return db_user
+
+def mark_user_email_as_verified(db: Session, user_id: int) -> account_model.Account | None:
+    db_user = get_user_by_id(db, user_id)
+    if db_user:
+        db_user.email_verified = True
+        db.commit()
+        db.refresh(db_user)
+        logger.info(f"Email marked as verified for user ID {user_id}")
+        return db_user
+    logger.warning(f"Attempted to mark email as verified for non-existent user ID {user_id}")
+    return None
