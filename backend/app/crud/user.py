@@ -65,3 +65,48 @@ def authenticate_user(db: Session, username: str, password_plain: str) -> accoun
         return None
     logger.info(f"User {db_user.username} authenticated successfully.")
     return db_user
+
+def mark_user_email_as_verified(db: Session, user_id: int) -> account_model.Account | None:
+    db_user = get_user_by_id(db, user_id)
+    if db_user:
+        db_user.email_verified = True
+        db.commit()
+        db.refresh(db_user)
+        logger.info(f"Email marked as verified for user ID {user_id}")
+        return db_user
+    logger.warning(f"Attempted to mark email as verified for non-existent user ID {user_id}")
+    return None
+
+# --- Admin CRUD Functions ---
+
+def get_all_users(db: Session) -> list[account_model.Account]:
+    return db.query(account_model.Account).all()
+
+def ban_account(db: Session, user: account_model.Account) -> account_model.Account:
+    user.locked = True # In AC, 1 typically means locked/banned
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Account {user.username} (ID: {user.id}) has been banned.")
+    return user
+
+def unban_account(db: Session, user: account_model.Account) -> account_model.Account:
+    user.locked = False # In AC, 0 typically means not locked/banned
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Account {user.username} (ID: {user.id}) has been unbanned.")
+    return user
+
+# Promote and Demote CRUD functions are removed as per requirements.
+# def promote_to_admin(db: Session, user: account_model.Account) -> account_model.Account:
+#     user.gmlevel = 3 # Example: Set to GM level 3 for admin
+#     db.commit()
+#     db.refresh(user)
+#     logger.info(f"Account {user.username} (ID: {user.id}) has been promoted to admin (gmlevel {user.gmlevel}).")
+#     return user
+
+# def demote_from_admin(db: Session, user: account_model.Account) -> account_model.Account:
+#     user.gmlevel = 0 # Example: Set to GM level 0 for regular player
+#     db.commit()
+#     db.refresh(user)
+#     logger.info(f"Account {user.username} (ID: {user.id}) has been demoted from admin (gmlevel {user.gmlevel}).")
+#     return user

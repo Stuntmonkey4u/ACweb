@@ -6,3 +6,10 @@ python-jose[cryptography]
 passlib[bcrypt]
 SQLAlchemy
 mysqlclient
+pyotp
+qrcode[pil]
+limits
+redis
+slowapi
+pytest
+pytest-mock

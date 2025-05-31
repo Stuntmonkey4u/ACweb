@@ -6,6 +6,9 @@
 # For example, if you want to do `from backend.app.crud import user_crud`
 # you could do:
 # from . import user as user_crud
+from . import email_verification
+from . import user_totp
+from . import captcha
 
 # Or directly expose functions:
 from .user import get_user_by_username, create_user, authenticate_user, update_user_password, get_user_by_email, get_user_by_id

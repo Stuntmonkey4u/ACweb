@@ -9,30 +9,43 @@ from backend.app.models import user # This ensures User Pydantic models are avai
 
 
 import logging
+from backend.app.core.database import init_db, init_aux_db
+from backend.app.core.rate_limiter import limiter # Import the limiter instance
+from slowapi.errors import RateLimitExceeded # Import the exception
+from slowapi import _rate_limit_exceeded_handler # Import the default handler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Create database tables if they don't exist
-# This is a simple way for development. For production, you'd use Alembic migrations.
-try:
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created or verified successfully (if they already exist).")
-except Exception as e:
-    logger.error(f"Error creating database tables: {e}")
-    # Depending on the severity, you might want to exit or handle this
-    # For now, just log it. The app might still run if tables exist.
-
-
 app = FastAPI(
     title="AzerothCore Account Management API",
-    description="API for managing AzerothCore user accounts, with LAN-first focus.",
+    description="API for managing AzerothCore user accounts, with LAN-first focus. Rate limiting active.",
     version="0.1.0"
 )
 
+# Add limiter state and exception handler to the app
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Starting up application and initializing databases...")
+    try:
+        init_db() # Initialize main database tables
+        init_aux_db() # Initialize auxiliary database tables
+        logger.info("Databases initialized successfully.")
+    except Exception as e:
+        logger.error(f"Error initializing databases: {e}")
+        # Optionally, re-raise the exception or exit if DB initialization is critical
+        # raise e
+
 logger.info(f"API Settings Loaded. DB Host: {settings.DB_HOST}, DB Name: {settings.DB_NAME}")
 
+from backend.app.api.endpoints import admin as admin_router
+from backend.app.api.endpoints import downloads as downloads_router # Import downloads router
 app.include_router(auth_router.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(admin_router.router) # Prefix and tags are defined in admin.py
+app.include_router(downloads_router.router) # Prefix and tags are defined in downloads.py
 
 @app.get("/api/health")
 async def health_check():
