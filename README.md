@@ -6,14 +6,13 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
 
 - [Features](#features)
 - [Architecture](#architecture)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Running the Application](#running-the-application)
+- [Installation (Recommended)](#installation-recommended)
+- [Manual Setup and Running](#manual-setup-and-running)
+  - [Prerequisites (Manual Setup)](#prerequisites-manual-setup)
+  - [Running the Application Manually](#running-the-application-manually)
 - [Configuration (Environment Variables)](#configuration-environment-variables)
 - [Offline vs. Online Functionality](#offline-vs-online-functionality)
-
 - [Admin Functionality (GM Level Based)](#admin-functionality-gm-level-based)
-
 - [Client Download Page Feature](#client-download-page-feature)
 - [Key Dependencies](#key-dependencies)
 - [API Endpoints](#api-endpoints)
@@ -31,6 +30,7 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
 *   **Client Download Page:** Provides authenticated users with links to download game clients, with placeholder LAN detection.
 *   **Dockerized:** Easy setup with Docker Compose.
 *   **LAN-First Focus:** Core features are designed to work without internet access.
+*   **Automated Installation Script:** `install.sh` script to guide through dependency checks, configuration setup, and Docker image building.
 
 ## Architecture
 
@@ -40,31 +40,88 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
 *   **Frontend:** React (Vite)
 *   **Containerization:** Docker and Docker Compose.
 
-## Getting Started
+## Installation (Recommended)
 
-### Prerequisites
+This project includes an `install.sh` script to simplify the setup process.
 
-*   Docker and Docker Compose
-*   A running MySQL server accessible to the backend (or use the one included in `docker-compose.yml`).
-*   Node.js and npm/yarn if you plan to modify frontend code directly.
+### Prerequisites for Installation Script
 
-### Running the Application
+*   A Linux or macOS environment (or WSL on Windows) capable of running Bash scripts.
+*   `git` (for cloning the repository, if you haven't already).
+*   `docker`
+*   `docker-compose` (v1 `docker-compose`) or `docker compose` (v2 plugin). The script will attempt to use the correct version.
 
-1.  **Clone the repository.**
-2.  **Configure Environment Variables:**
-    *   Create a `.env` file in the `backend/` directory by copying from `.env.example` (if provided) or by using the list in the [Configuration](#configuration-environment-variables) section below.
-    *   Update the MySQL connection details (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`) in `backend/.env` to point to your AzerothCore `ac_auth` database. If using the provided `docker-compose.yml`'s MySQL service, the defaults might work but ensure the database `ac_auth` exists.
-3.  **Initial Admin Setup (Manual):**
-    *   After the first user is registered, you may need to manually set their GM level to 3 or higher to access the admin panel. See the [Admin Functionality (GM Level Based)](#admin-functionality-gm-level-based) section for details.
-4.  **Run with Docker Compose:**
+### Installation Steps
+
+1.  **Clone the Repository (if you haven't already):**
     ```bash
-    docker-compose up --build
+    git clone <repository_url>
+    cd <repository_name>
     ```
-5.  **Access:**
-    *   Frontend: `http://localhost:3000` (or your configured port)
-    *   Backend API Docs: `http://localhost:8000/docs` (or your configured port)
 
-The auxiliary SQLite database (e.g., `backend/app_data.sqlite`) will be created automatically on startup if it doesn't exist. Database tables for both MySQL (if `init_db` is effective) and SQLite will also be created/updated. The application now uses the standard `gmlevel` field from the `account` table for admin privileges. Ensure your database schema is up to date.
+2.  **Make the Installation Script Executable:**
+    ```bash
+    chmod +x install.sh
+    ```
+
+3.  **Run the Installation Script:**
+    ```bash
+    ./install.sh
+    ```
+
+4.  **Follow Script Prompts:**
+    *   The script will first check for necessary dependencies (git, Docker, Docker Compose).
+    *   It will then guide you through setting up the `.env` configuration file by copying `.env.example`.
+    *   **Crucially, the script will pause and prompt you to edit the `.env` file.** At this point, you must configure your database connection details (especially `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`), your `SECRET_KEY`, and any other optional settings like SMTP or Redis if you plan to use them.
+    *   After you confirm that you've edited the `.env` file, the script will proceed to build the Docker images using Docker Compose. This may take several minutes.
+
+5.  **First Application Start & Admin Setup (Post-Script):**
+    *   Once the script completes, it will provide instructions for starting the application using `docker-compose up -d` (or `docker compose up -d`).
+    *   It will also remind you about the manual step required to set your first user account's GM level to 3 or higher to grant admin access to the web panel. Detailed instructions for this are also found in the [Admin Functionality (GM Level Based)](#admin-functionality-gm-level-based) section and are output by the script.
+
+## Manual Setup and Running
+
+If you prefer not to use the `install.sh` script or need to understand the manual steps:
+
+### Prerequisites (Manual Setup)
+
+*   `git`
+*   `docker`
+*   `docker-compose` (v1 or v2)
+*   A running MySQL server accessible to the backend (or use the one included in `docker-compose.yml`).
+*   Node.js and npm/yarn if you plan to modify frontend code directly (for development).
+
+### Running the Application Manually
+
+1.  **Clone the Repository:**
+    ```bash
+    git clone <repository_url>
+    cd <repository_name>
+    ```
+2.  **Configure Environment Variables:**
+    *   Manually copy the root `.env.example` file to `.env`.
+    *   Edit the `.env` file with your specific configurations (database, `SECRET_KEY`, SMTP, Redis, etc.). Refer to the [Configuration (Environment Variables)](#configuration-environment-variables) section for details on each variable.
+3.  **Build Docker Images:**
+    ```bash
+    # Using Docker Compose v1
+    docker-compose build
+    # Or, using Docker Compose v2
+    # docker compose build
+    ```
+4.  **Start Application:**
+    ```bash
+    # Using Docker Compose v1 (detached mode)
+    docker-compose up -d
+    # Or, using Docker Compose v2 (detached mode)
+    # docker compose up -d
+    ```
+5.  **Initial Admin Setup:**
+    *   After registering your first user via the web UI, manually set their GM level to 3 or higher in the database to grant admin access. See [Admin Functionality (GM Level Based)](#admin-functionality-gm-level-based) for SQL/GM commands.
+6.  **Access:**
+    *   Frontend: `http://localhost:3000` (or your configured frontend port, if changed).
+    *   Backend API Docs: `http://localhost:8000/docs` (or your configured backend port).
+
+The auxiliary SQLite database (e.g., `backend/app_data.sqlite` as per `AUX_DB_NAME` in `.env`) will be created automatically in the `backend/` directory on first startup if it doesn't exist. Database tables for both MySQL and SQLite will also be initialized by the backend. The application uses the standard `gmlevel` field from the `account` table for admin privileges.
 
 ## Configuration (Environment Variables)
 
