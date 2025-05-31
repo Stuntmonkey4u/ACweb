@@ -11,7 +11,9 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
   - [Running the Application](#running-the-application)
 - [Configuration (Environment Variables)](#configuration-environment-variables)
 - [Offline vs. Online Functionality](#offline-vs-online-functionality)
+
 - [Admin Functionality (GM Level Based)](#admin-functionality-gm-level-based)
+
 - [Client Download Page Feature](#client-download-page-feature)
 - [Key Dependencies](#key-dependencies)
 - [API Endpoints](#api-endpoints)
