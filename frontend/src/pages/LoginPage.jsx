@@ -5,11 +5,13 @@ import { useAuth } from '../context/AuthContext'; // Import useAuth
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [totpCode, setTotpCode] = useState('');
   const [error, setError] = useState('');
-  const [isLoadingPage, setIsLoadingPage] = useState(false); // Renamed to avoid conflict if useAuth also has isLoading
+  const [isLoadingPage, setIsLoadingPage] = useState(false);
+  const [showTotpField, setShowTotpField] = useState(false); // To dynamically show TOTP field
 
   const navigate = useNavigate();
-  const { login, isLoading: isAuthLoading } = useAuth(); // Get login function and auth loading state from context
+  const { login, isLoading: isAuthLoading } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,36 +19,26 @@ const LoginPage = () => {
     setIsLoadingPage(true);
 
     try {
-      // The backend expects x-www-form-urlencoded for token endpoint
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-
-      const response = await fetch('/api/auth/login/token', { // Using Vite proxy
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData.toString(),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Login failed');
-      }
-
-      login(data.access_token); // Use context's login method
+      await login(username, password, totpCode); // Use context's login method
       navigate('/dashboard');
-
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      const errorMessage = err.data?.detail || err.message || 'Login failed.';
+      setError(errorMessage);
+      // Check if error indicates TOTP is required or invalid
+      if (errorMessage.toLowerCase().includes("totp code required")) {
+        setShowTotpField(true);
+        setError("TOTP code required. Please enter it below."); // More specific error
+      } else if (errorMessage.toLowerCase().includes("invalid totp code")) {
+        setShowTotpField(true);
+        setError("Invalid TOTP code. Please try again."); // More specific error
+      } else {
+        setShowTotpField(false); // Hide if other error
+      }
     } finally {
       setIsLoadingPage(false);
     }
   };
 
-  // Disable form if auth context is still loading initial state or if page is submitting
   const formDisabled = isAuthLoading || isLoadingPage;
 
   return (
@@ -63,13 +55,12 @@ const LoginPage = () => {
               className="input-themed"
               placeholder="Enter your username"
               value={username}
-              // AC usernames often uppercase, but allow user to type mixed, backend handles comparison
               onChange={(e) => setUsername(e.target.value)}
               required
               disabled={formDisabled}
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <label htmlFor="password" className="block text-sm font-bold mb-2 text-wotlk-text-dark">Password</label>
             <input
               type="password"
@@ -79,6 +70,22 @@ const LoginPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={formDisabled}
+            />
+          </div>
+          {/* Always show TOTP field for simplicity, backend handles if not needed or if user doesn't have 2FA */}
+          <div className="mb-6">
+            <label htmlFor="totpCode" className="block text-sm font-bold mb-2 text-wotlk-text-dark">
+              2FA Code (if enabled)
+            </label>
+            <input
+              type="text"
+              id="totpCode"
+              className="input-themed"
+              placeholder="Enter 6-digit code"
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value)}
+              maxLength="6"
               disabled={formDisabled}
             />
           </div>
