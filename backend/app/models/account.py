@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, SmallInteger, Boolean, TIMESTAMP
-from sqlalchemy.sql import func, expression # For server_default func.now() and expression.false()
+from sqlalchemy import Column, Integer, String, SmallInteger, Boolean, TIMESTAMP, text
+from sqlalchemy.sql import func, expression
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.core.database import Base
@@ -29,9 +29,11 @@ class Account(Base):
     joindate = Column(TIMESTAMP, nullable=False, server_default=func.now())
     last_login = Column(TIMESTAMP, nullable=True)
 
-    locked = Column(Boolean, nullable=False, default=False, server_default=expression.false()) # Added server_default for consistency
+    locked = Column(Boolean, nullable=False, default=False, server_default=expression.false())
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default=expression.false())
-    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default=expression.false(), nullable=False)
+    # is_admin field removed
+    gmlevel: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+
 
     # Other common fields from AzerothCore 'account' table (optional, for reference or future use):
     # v = Column(String(255), nullable=False, default='')
@@ -47,8 +49,8 @@ class Account(Base):
 
     # Manual Admin Promotion SQL (MySQL example):
     # To manually set a user as admin (e.g., user with ID 1):
-    # UPDATE account SET is_admin = TRUE WHERE id = 1;
-    # Or, if using a DB management tool, edit the 'is_admin' field for the desired user.
+    # UPDATE account SET gmlevel = <level> WHERE id = 1; (e.g., level 3 for admin)
+    # Or, if using a DB management tool, edit the 'gmlevel' field for the desired user.
 
     def __repr__(self):
-        return f"<Account(id={self.id}, username='{self.username}', email='{self.email}', is_admin={self.is_admin})>"
+        return f"<Account(id={self.id}, username='{self.username}', email='{self.email}', gmlevel={self.gmlevel})>"

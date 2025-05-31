@@ -42,8 +42,9 @@ const UserListPage = () => {
 
   const handleBanUser = (userId) => handleUserAction(apiClient.adminBanUser, userId, 'User banned successfully.', 'Failed to ban user');
   const handleUnbanUser = (userId) => handleUserAction(apiClient.adminUnbanUser, userId, 'User unbanned successfully.', 'Failed to unban user');
-  const handlePromoteUser = (userId) => handleUserAction(apiClient.adminPromoteUser, userId, 'User promoted successfully.', 'Failed to promote user');
-  const handleDemoteUser = (userId) => handleUserAction(apiClient.adminDemoteUser, userId, 'User demoted successfully.', 'Failed to demote user');
+  // Remove promote/demote handlers
+  // const handlePromoteUser = (userId) => handleUserAction(apiClient.adminPromoteUser, userId, 'User promoted successfully.', 'Failed to promote user');
+  // const handleDemoteUser = (userId) => handleUserAction(apiClient.adminDemoteUser, userId, 'User demoted successfully.', 'Failed to demote user');
 
   if (loading) {
     return <div className="panel-parchment text-center p-10"><p className="text-wotlk-gold text-xl">Loading users...</p></div>;
@@ -70,7 +71,7 @@ const UserListPage = () => {
               <th className="py-3 px-6">ID</th>
               <th className="py-3 px-6">Username</th>
               <th className="py-3 px-6">Email</th>
-              <th className="py-3 px-6 text-center">Admin</th>
+              <th className="py-3 px-6 text-center">GM Level</th> {/* Changed header */}
               <th className="py-3 px-6 text-center">Locked</th>
               <th className="py-3 px-6 text-center">Email Verified</th>
               <th className="py-3 px-6 text-center">Actions</th>
@@ -82,11 +83,11 @@ const UserListPage = () => {
                 <td className="py-3 px-6">{user.id}</td>
                 <td className="py-3 px-6 font-medium">{user.username}</td>
                 <td className="py-3 px-6">{user.email}</td>
-                <td className="py-3 px-6 text-center">{user.is_admin ? <span className="text-green-400">Yes</span> : <span className="text-red-400">No</span>}</td>
+                <td className="py-3 px-6 text-center">{user.gmlevel}</td> {/* Changed to display gmlevel */}
                 <td className="py-3 px-6 text-center">{user.locked ? <span className="text-red-400">Yes</span> : <span className="text-green-400">No</span>}</td>
                 <td className="py-3 px-6 text-center">{user.email_verified ? <span className="text-green-400">Yes</span> : <span className="text-red-400">No</span>}</td>
                 <td className="py-3 px-6 text-center">
-                  <div className="flex item-center justify-center space-x-1 md:space-x-2"> {/* Adjusted spacing for smaller buttons */}
+                  <div className="flex item-center justify-center space-x-1 md:space-x-2">
                     {user.locked ? (
                       <button
                         onClick={() => handleUnbanUser(user.id)}
@@ -98,31 +99,13 @@ const UserListPage = () => {
                       <button
                         onClick={() => handleBanUser(user.id)}
                         className="btn-secondary text-red-400 hover:text-red-300 px-2 py-1 text-xs"
-                        disabled={user.id === adminUser?.id || user.is_admin}
-                        title={user.id === adminUser?.id ? "Cannot ban self" : (user.is_admin ? "Cannot ban other admins" : "")}
+                        disabled={user.id === adminUser?.id || user.gmlevel >= 3} // Updated ban logic for admins
+                        title={user.id === adminUser?.id ? "Cannot ban self" : (user.gmlevel >= 3 ? "Cannot ban other GMs/Admins" : "")}
                       >
                         Ban
                       </button>
                     )}
-                    {user.is_admin ? (
-                      <button
-                        onClick={() => handleDemoteUser(user.id)}
-                        className="btn-secondary text-yellow-400 hover:text-yellow-300 px-2 py-1 text-xs"
-                        disabled={user.id === adminUser?.id}
-                        title={user.id === adminUser?.id ? "Cannot demote self" : ""}
-                      >
-                        Demote
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handlePromoteUser(user.id)}
-                        className="btn-secondary text-blue-400 hover:text-blue-300 px-2 py-1 text-xs"
-                        disabled={user.id === adminUser?.id}
-                        title={user.id === adminUser?.id ? "Cannot self-promote (already admin or not applicable)" : ""}
-                      >
-                        Promote
-                      </button>
-                    )}
+                    {/* Promote/Demote buttons removed */}
                   </div>
                 </td>
               </tr>

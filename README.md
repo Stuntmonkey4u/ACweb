@@ -11,7 +11,9 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
   - [Running the Application](#running-the-application)
 - [Configuration (Environment Variables)](#configuration-environment-variables)
 - [Offline vs. Online Functionality](#offline-vs-online-functionality)
-- [Admin Functionality](#admin-functionality)
+
+- [Admin Functionality (GM Level Based)](#admin-functionality-gm-level-based)
+
 - [Client Download Page Feature](#client-download-page-feature)
 - [Key Dependencies](#key-dependencies)
 - [API Endpoints](#api-endpoints)
@@ -25,7 +27,7 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
 *   **Offline-Friendly CAPTCHA:** Math-based CAPTCHA to protect registration and password reset endpoints, fully functional offline.
 *   **Rate Limiting:** Protects key authentication and utility endpoints. Uses Redis for distributed rate limiting if available, with an in-memory fallback per instance.
 *   **Password Reset Request:** (Currently offline handling, email sending for reset link is TBD).
-*   **Basic Admin Panel:** User listing, account banning/unbanning, and admin role promotion/demotion.
+*   **Basic Admin Panel:** User listing and account banning/unbanning. Admin status is based on the in-game `gmlevel`.
 *   **Client Download Page:** Provides authenticated users with links to download game clients, with placeholder LAN detection.
 *   **Dockerized:** Easy setup with Docker Compose.
 *   **LAN-First Focus:** Core features are designed to work without internet access.
@@ -53,7 +55,7 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
     *   Create a `.env` file in the `backend/` directory by copying from `.env.example` (if provided) or by using the list in the [Configuration](#configuration-environment-variables) section below.
     *   Update the MySQL connection details (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`) in `backend/.env` to point to your AzerothCore `ac_auth` database. If using the provided `docker-compose.yml`'s MySQL service, the defaults might work but ensure the database `ac_auth` exists.
 3.  **Initial Admin Setup (Manual):**
-    *   After the first user is registered, you may need to manually promote them to an admin to access the admin panel. See the [Admin Functionality](#admin-functionality) section for details.
+    *   After the first user is registered, you may need to manually set their GM level to 3 or higher to access the admin panel. See the [Admin Functionality (GM Level Based)](#admin-functionality-gm-level-based) section for details.
 4.  **Run with Docker Compose:**
     ```bash
     docker-compose up --build
@@ -62,7 +64,7 @@ This project provides a FastAPI backend and a React frontend for managing Azerot
     *   Frontend: `http://localhost:3000` (or your configured port)
     *   Backend API Docs: `http://localhost:8000/docs` (or your configured port)
 
-The auxiliary SQLite database (e.g., `backend/app_data.sqlite`) will be created automatically on startup if it doesn't exist. Database tables for both MySQL (if `init_db` is effective) and SQLite will also be created/updated. Note that adding new columns like `is_admin` to an *existing* `account` table via `init_db` might not work automatically for MySQL; manual `ALTER TABLE` or a fresh database might be needed.
+The auxiliary SQLite database (e.g., `backend/app_data.sqlite`) will be created automatically on startup if it doesn't exist. Database tables for both MySQL (if `init_db` is effective) and SQLite will also be created/updated. The application now uses the standard `gmlevel` field from the `account` table for admin privileges. Ensure your database schema is up to date.
 
 ## Configuration (Environment Variables)
 
@@ -139,24 +141,27 @@ PUBLIC_DOWNLOAD_URL="https://public-mirror.example.com/wow_client.zip" # Example
     *   **With Redis:** If `REDIS_HOST` is configured and the Redis server is reachable, rate limits are shared across all instances (if scaled) and persist.
     *   **Without Redis (In-Memory Fallback):** Rate limits are tracked in memory for each instance of the backend. Limits do not persist across restarts and are not shared between multiple instances.
 
-## Admin Functionality
+## Admin Functionality (GM Level Based)
 
-The application includes an admin role and a basic admin panel for user management.
+The application uses the standard AzerothCore `gmlevel` for determining administrator privileges for the web panel.
 
-*   **Admin Role:** The `Account` model in the database has an `is_admin` boolean flag. Users with this flag set to `TRUE` have access to admin functionalities.
-*   **Initial Admin Setup:** There is currently no API endpoint for the very first admin promotion. To set up your initial admin user:
-    1.  Register a new user through the standard registration page.
-    2.  Access your MySQL database directly.
-    3.  Run the following SQL command (replace `1` with the actual ID of the user you want to promote):
+*   **Admin Role:** Access to admin functionalities in this web application is granted to users who have an `account.gmlevel` of 3 or higher. This aligns with common AzerothCore permission setups where GM level 3 corresponds to "Administrator".
+*   **Initial Admin Setup:** The web application does not provide an interface to change GM levels. To set up your initial admin user for the web panel:
+    1.  Register a new user through the standard registration page of this web application.
+    2.  Modify this user's `gmlevel` in the `account` table directly in your MySQL database. For example, to make the user with ID `1` an admin:
         ```sql
-        UPDATE account SET is_admin = TRUE WHERE id = 1;
+        UPDATE account SET gmlevel = 3 WHERE id = 1;
         ```
+    3.  Alternatively, if you have console access to your running AzerothCore server, you can use in-game commands:
+        ```
+        .account set gmlevel <account_username> 3
+        ```
+        Replace `<account_username>` with the username of the account.
 *   **Admin Panel Features (Frontend):**
-    *   Accessible via an "Admin Panel" link in the navbar for logged-in admin users.
-    *   **User Listing:** View all registered users with details like ID, username, email, admin status, locked status, and email verification status.
-    *   **Ban/Unban Users:** Lock or unlock user accounts. Admins cannot ban themselves or other admins.
-    *   **Promote/Demote Admins:** Grant or revoke admin privileges for users. Admins cannot demote themselves.
-*   **Admin API Endpoints:** Located under `/api/admin/`, these endpoints are protected and require the requesting user to have admin privileges.
+    *   Accessible via an "Admin Panel" link in the navbar for logged-in users with `gmlevel >= 3`.
+    *   **User Listing:** View all registered users with details including ID, username, email, GM Level, locked status, and email verification status.
+    *   **Ban/Unban Users:** Lock or unlock user accounts. Admins cannot ban themselves or other users with `gmlevel >= 3`.
+*   **Admin API Endpoints:** Located under `/api/admin/`, these endpoints are protected and require the authenticated user to have a `gmlevel` of 3 or higher.
 
 ## Client Download Page Feature
 
@@ -200,7 +205,7 @@ Key new endpoints include:
 *   `/api/auth/2fa/disable`
 *   `/api/auth/captcha/generate`
 *   `/api/auth/verify-email` (for confirming email after clicking link)
-*   `/api/admin/users` (and sub-routes for ban, promote, etc.)
+*   `/api/admin/users` (and sub-routes for ban/unban)
 *   `/api/downloads/client-info`
 
 ## Contributing

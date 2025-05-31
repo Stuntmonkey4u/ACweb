@@ -40,7 +40,8 @@ async def ban_user_endpoint( # Renamed to avoid conflict with crud function if i
 
     if target_user.id == admin_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admins cannot ban themselves.")
-    if target_user.is_admin: # Prevent banning other admins
+    # Check against gmlevel; assuming admin_user (current user) is already verified as admin (gmlevel >= 3)
+    if target_user.gmlevel >= 3: # Prevent banning other admins (gmlevel 3+)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot ban other admin users.")
 
     banned_user = user_crud.ban_account(db, target_user)
@@ -62,43 +63,11 @@ async def unban_user_endpoint( # Renamed
     unbanned_user = user_crud.unban_account(db, target_user)
     return unbanned_user
 
-@router.post("/users/{user_id}/promote", response_model=user_schema.User)
-@limiter.limit(settings.RATE_LIMIT_DEFAULT)
-async def promote_user_endpoint( # Renamed
-    request: Request,
-    user_id: int,
-    db: Session = Depends(get_db),
-    # admin_user: AccountModel = Depends(get_current_admin_user) # Not strictly needed if not checking self-action
-):
-    target_user = user_crud.get_user_by_id(db, user_id=user_id)
-    if not target_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+# Promote and Demote endpoints are removed as per requirements.
+# @router.post("/users/{user_id}/promote", response_model=user_schema.User)
+# @limiter.limit(settings.RATE_LIMIT_DEFAULT)
+# async def promote_user_endpoint( ... )
 
-    if target_user.is_admin:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is already an admin.")
-
-    promoted_user = user_crud.promote_to_admin(db, target_user)
-    return promoted_user
-
-@router.post("/users/{user_id}/demote", response_model=user_schema.User)
-@limiter.limit(settings.RATE_LIMIT_DEFAULT)
-async def demote_user_endpoint( # Renamed
-    request: Request,
-    user_id: int,
-    db: Session = Depends(get_db),
-    admin_user: AccountModel = Depends(get_current_admin_user) # For self-demotion check
-):
-    target_user = user_crud.get_user_by_id(db, user_id=user_id)
-    if not target_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    if not target_user.is_admin:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not an admin.")
-
-    if target_user.id == admin_user.id:
-        # Potentially count other admins before allowing self-demotion if it's the last one.
-        # For now, simple prevention.
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admins cannot demote themselves.")
-
-    demoted_user = user_crud.demote_from_admin(db, target_user)
-    return demoted_user
+# @router.post("/users/{user_id}/demote", response_model=user_schema.User)
+# @limiter.limit(settings.RATE_LIMIT_DEFAULT)
+# async def demote_user_endpoint( ... )

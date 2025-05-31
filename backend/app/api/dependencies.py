@@ -32,9 +32,11 @@ async def get_current_active_user(token: str = Depends(oauth2_scheme), db: Sessi
     return user
 
 async def get_current_admin_user(current_user: AccountModel = Depends(get_current_active_user)) -> AccountModel:
-    if not current_user.is_admin:
+    # Standard AzerothCore: GM level 3 is typically Administrator.
+    # Access is granted if gmlevel is 3 or higher.
+    if current_user.gmlevel < 3:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="The user doesn't have enough privileges." # Corrected typo
+            detail="The user doesn't have enough privileges."
         )
     return current_user

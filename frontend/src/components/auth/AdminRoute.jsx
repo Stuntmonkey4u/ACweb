@@ -24,7 +24,8 @@ const AdminRoute = ({ children }) => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (!auth.user || !auth.user.is_admin) {
+    // Check for gmlevel instead of is_admin
+    if (!auth.user || auth.user.gmlevel < 3) {
         // Redirect them to the dashboard or a general "access denied" page.
         // Pass a message to the dashboard page via location state.
         return <Navigate to="/dashboard" state={{ message: "You do not have permission to access this page." }} replace />;

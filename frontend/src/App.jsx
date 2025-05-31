@@ -33,7 +33,7 @@ const Navbar = () => {
             <>
               <span className="text-wotlk-ice">Welcome, {user ? user.username : 'User'}!</span>
               <Link to="/dashboard" className="text-wotlk-text-light hover:text-wotlk-light-blue">Dashboard</Link>
-              {user && user.is_admin && (
+              {user && user.gmlevel >= 3 && ( // Updated to check gmlevel
                 <Link to="/admin/users" className="text-yellow-400 hover:text-yellow-300">Admin Panel</Link>
               )}
               <Link to="/change-password" className="text-wotlk-text-light hover:text-wotlk-light-blue">Change Password</Link>

@@ -96,16 +96,17 @@ def unban_account(db: Session, user: account_model.Account) -> account_model.Acc
     logger.info(f"Account {user.username} (ID: {user.id}) has been unbanned.")
     return user
 
-def promote_to_admin(db: Session, user: account_model.Account) -> account_model.Account:
-    user.is_admin = True
-    db.commit()
-    db.refresh(user)
-    logger.info(f"Account {user.username} (ID: {user.id}) has been promoted to admin.")
-    return user
+# Promote and Demote CRUD functions are removed as per requirements.
+# def promote_to_admin(db: Session, user: account_model.Account) -> account_model.Account:
+#     user.gmlevel = 3 # Example: Set to GM level 3 for admin
+#     db.commit()
+#     db.refresh(user)
+#     logger.info(f"Account {user.username} (ID: {user.id}) has been promoted to admin (gmlevel {user.gmlevel}).")
+#     return user
 
-def demote_from_admin(db: Session, user: account_model.Account) -> account_model.Account:
-    user.is_admin = False
-    db.commit()
-    db.refresh(user)
-    logger.info(f"Account {user.username} (ID: {user.id}) has been demoted from admin.")
-    return user
+# def demote_from_admin(db: Session, user: account_model.Account) -> account_model.Account:
+#     user.gmlevel = 0 # Example: Set to GM level 0 for regular player
+#     db.commit()
+#     db.refresh(user)
+#     logger.info(f"Account {user.username} (ID: {user.id}) has been demoted from admin (gmlevel {user.gmlevel}).")
+#     return user

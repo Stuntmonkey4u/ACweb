@@ -126,12 +126,13 @@ export const apiClient = {
   adminUnbanUser: async (userId, authToken) => {
     return apiClient.post(`/admin/users/${userId}/unban`, {}, authToken);
   },
-  adminPromoteUser: async (userId, authToken) => {
-    return apiClient.post(`/admin/users/${userId}/promote`, {}, authToken);
-  },
-  adminDemoteUser: async (userId, authToken) => {
-    return apiClient.post(`/admin/users/${userId}/demote`, {}, authToken);
-  },
+  // adminPromoteUser and adminDemoteUser removed
+  // adminPromoteUser: async (userId, authToken) => {
+  //   return apiClient.post(`/admin/users/${userId}/promote`, {}, authToken);
+  // },
+  // adminDemoteUser: async (userId, authToken) => {
+  //   return apiClient.post(`/admin/users/${userId}/demote`, {}, authToken);
+  // },
 
   // --- Downloads ---
   getClientDownloadInfo: async (authToken) => {
